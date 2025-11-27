@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FATAL_EXCEPTION_0x0000DEAD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @font-face {
+            font-family: 'W95FA';
+            src: url('data:font/woff2;base64,d09GMgABAAAAAAZQAA0AAAAAC2AAAAYBAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGhYbgRwcKgZgAEQRCAqHMIY/ATYCJAMUBCAFhAcHIBsMB1GUzbIU2UdiHMaRlqSo/z+2+P///+17n32i6S9ixYhp/9j/7W+KkYh4VU2uE0uixELUyMQ6R2pJ9i7/s5x+n92');
+        }
+
+        body {
+            font-family: 'W95FA', 'Fixedsys', monospace;
+            background: #000082;
+            color: white;
+            overflow: hidden;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="white" stroke="black" stroke-width="1" d="M0,0 L0,10 L4,10 L7,16 L9,16 L9,10 L0,10 L10,0 Z"/></svg>') 0 0, auto;
+        }
+
+        /* MATRIX RAIN BACKGROUND */
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        /* PARTICLE CONTAINER */
+        #particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #ff0000;
+            border-radius: 50%;
+            animation: fall linear forwards;
+            opacity: 0.7;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* CRT EFFECT */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15) 1px, transparent 1px, transparent 2px);
+            pointer-events: none;
+            z-index: 9999;
+            animation: flicker 0.15s infinite;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 1; }
+        }
+
+        .screen-glitch {
+            animation: glitch 0.3s cubic-bezier(.25,.46,.45,.94) both infinite;
+        }
+
+        @keyframes glitch {
+            0%, 100% { transform: translate(0); filter: hue-rotate(0deg); }
+            20% { transform: translate(-2px, 2px); filter: hue-rotate(90deg); }
+            40% { transform: translate(-2px, -2px); filter: hue-rotate(180deg); }
+            60% { transform: translate(2px, 2px); filter: hue-rotate(270deg); }
+            80% { transform: translate(2px, -2px); filter: hue-rotate(360deg); }
+        }
+
+        /* BURN EFFECT */
+        .burn-text {
+            position: relative;
+            display: inline-block;
+        }
+
+        .burn-text::after {
+            content: attr(data-text);
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: #ff6600;
+            filter: blur(2px);
+            animation: burn 2s ease-in-out forwards;
+        }
+
+        @keyframes burn {
+            0% { opacity: 0; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 0; transform: scale(1.1); color: #000; }
+        }
+
+        /* WINDOWS */
+        .window {
+            position: absolute;
+            background: #c0c0c0;
+            border: 2px solid;
+            border-color: #dfdfdf #808080 #808080 #dfdfdf;
+            box-shadow: 1px 1px 0 #000;
+            min-width: 250px;
+            max-width: 90vw;
+            z-index: 10;
+        }
+
+        .title-bar {
+            background: linear-gradient(90deg, #000080, #1084d0);
+            padding: 2px 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            font-size: 11px;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="white" stroke="black" stroke-width="1" d="M0,0 L0,10 L4,10 L7,16 L9,16 L9,10 L0,10 L10,0 Z"/></svg>') 0 0, move;
+            user-select: none;
+        }
+
+        .title-bar svg {
+            width: 14px;
+            height: 14px;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        .title-buttons {
+            display: flex;
+            gap: 2px;
+        }
+
+        .title-btn {
+            width: 16px;
+            height: 14px;
+            background: #c0c0c0;
+            border: 1px solid;
+            border-color: #fff #000 #000 #fff;
+            font-size: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="white" stroke="black" stroke-width="1" d="M5,5 L8,8 L5,11 M8,8 L11,5 M8,8 L11,11"/></svg>') 0 0, pointer;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .window-body {
+            padding: 10px;
+            color: #000;
+            font-size: 11px;
+        }
+
+        input {
+            width: 100%;
+            padding: 4px;
+            border: 2px solid;
+            border-color: #808080 #dfdfdf #dfdfdf #808080;
+            font-family: inherit;
+            font-size: 11px;
+            margin: 5px 0;
+            background: #fff;
+        }
+
+        button {
+            background: #c0c0c0;
+            border: 2px solid;
+            border-color: #dfdfdf #000 #000 #dfdfdf;
+            padding: 4px 12px;
+            font-family: inherit;
+            font-size: 11px;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="white" stroke="black" stroke-width="1" d="M5,5 L8,8 L5,11 M8,8 L11,5 M8,8 L11,11"/></svg>') 0 0, pointer;
+            margin: 5px 2px;
+        }
+
+        button:active {
+            border-color: #000 #dfdfdf #dfdfdf #000;
+        }
+
+        /* 3D CARD FLIP */
+        .card {
+            position: absolute;
+            width: 70px;
+            height: 110px;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="white" stroke="black" stroke-width="1" d="M5,5 L8,8 L5,11 M8,8 L11,5 M8,8 L11,11"/></svg>') 0 0, pointer;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            box-shadow: 3px 3px 8px rgba(0,0,0,0.7);
+            border-radius: 5px;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 5px;
+            border: 2px solid #000;
+        }
+
+        .card-back-face {
+            width: 110%;
+            height: 100%;
+            background-image: url('_ (45).jpeg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .card-front {
+            transform: rotateY(180deg);
+            background-size: cover;
+            background-position: center;
+        }
+
+        .card:hover {
+            transform: scale(1.2) translateZ(20px) !important;
+            box-shadow: 0 0 30px #ff0000;
+            z-index: 999 !important;
+        }
+
+        .skull-float {
+            position: absolute;
+            opacity: 0.1;
+            pointer-events: none;
+            animation: float 10s ease-in-out infinite;
+            z-index: 1;
+        }
+
+        .skull-float svg {
+            width: 60px;
+            height: 60px;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(50px, -50px) rotate(10deg); }
+            66% { transform: translate(-50px, 50px) rotate(-10deg); }
+        }
+
+        .corrupt {
+            animation: corrupt 0.5s infinite;
+        }
+
+        @keyframes corrupt {
+            0%, 100% { text-shadow: 0 0 0 #fff; }
+            25% { text-shadow: -2px 0 #ff00ff, 2px 2px #00ffff; }
+            50% { text-shadow: 2px -2px #ff00ff, -2px 2px #00ffff; }
+            75% { text-shadow: -2px -2px #ff00ff, 2px 0 #00ffff; }
+        }
+
+        .blink {
+            animation: blink 0.5s step-start infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            border: 1px solid #000;
+            background: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #000080;
+            transition: width 0.3s;
+        }
+
+        .interpretation-box {
+            background: #000;
+            color: #00ff00;
+            padding: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            border: 2px solid #00ff00;
+            max-height: 200px;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+
+        .solution-box {
+            background: #000;
+            color: #ffff00;
+            padding: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            border: 2px solid #ffff00;
+            max-height: 200px;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+
+        .card-detail {
+            background: #1a1a1a;
+            border-left: 3px solid #ff0000;
+            padding: 6px;
+            margin: 6px 0;
+            color: #fff;
+        }
+
+        .card-detail h4 {
+            color: #ff6666;
+            margin-bottom: 4px;
+            font-size: 11px;
+        }
+
+        .card-detail p {
+            font-size: 9px;
+            line-height: 1.3;
+            margin: 2px 0;
+        }
+
+        .warning {
+            background: #ff0000;
+            color: #fff;
+            padding: 5px;
+            text-align: center;
+            font-weight: bold;
+            animation: blink 1s infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .success {
+            background: #00ff00;
+            color: #000;
+            padding: 5px;
+            text-align: center;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        /* COUNTDOWN TIMER */
+        .countdown {
+            background: #000;
+            color: #ff0000;
+            padding: 10px;
+            margin: 10px 0;
+            text-align: center;
+            font-size: 14px;
+            border: 2px solid #ff0000;
+            font-family: 'Courier New', monospace;
+        }
+
+        .countdown-label {
+            font-size: 8px;
+            color: #888;
+        }
+
+        .countdown-value {
+            font-size: 16px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        /* TIMELINE */
+        .timeline {
+            background: #1a1a1a;
+            padding: 8px;
+            margin: 8px 0;
+            border-left: 3px solid #ffaa00;
+        }
+
+        .timeline-item {
+            padding: 4px 0;
+            border-bottom: 1px dashed #333;
+            font-size: 9px;
+            color: #ffaa00;
+        }
+
+        .hidden { display: none !important; }
+
+        ::-webkit-scrollbar {
+            width: 16px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #c0c0c0;
+            border: 1px solid #808080;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #808080;
+            border: 1px solid #fff;
+        }
+
+        .loading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        /* TYPEWRITER EFFECT */
+        .typewriter {
+            overflow: hidden;
+            border-right: 2px solid #00ff00;
+            white-space: nowrap;
+            animation: typing 2s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: #00ff00; }
+        }
+
+        /* SHARE BUTTON */
+        .share-btn {
+            background: linear-gradient(45deg, #ff0000, #aa0000);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .share-btn:hover {
+            background: linear-gradient(45deg, #aa0000, #ff0000);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            body { font-size: 10px; }
+            .window { width: 90vw !important; max-width: 90vw; left: 5vw !important; }
+            #form-window { top: 20% !important; left: 5vw !important; }
+            #instruction-window { top: 5% !important; left: 5vw !important; width: 90vw !important; }
+            #result-window { top: 2% !important; left: 5vw !important; width: 90vw !important; max-height: 95vh; }
+            .card { width: 60px; height: 95px; }
+            .skull-float svg { width: 40px; height: 40px; }
+            .interpretation-box, .solution-box { font-size: 9px; max-height: 150px; }
+            .card-detail p { font-size: 8px; }
+        }
+
+        @media (max-width: 480px) {
+            body { font-size: 9px; }
+            .title-bar { font-size: 9px; padding: 2px 3px; }
+            .window-body { padding: 8px; font-size: 9px; }
+            .window { width: 95vw !important; left: 2.5vw !important; }
+            #form-window { top: 25% !important; left: 2.5vw !important; }
+            #instruction-window { top: 5% !important; left: 2.5vw !important; width: 95vw !important; }
+            #result-window { top: 1% !important; left: 2.5vw !important; width: 95vw !important; max-height: 98vh; }
+            .card { width: 50px; height: 80px; }
+            button { padding: 3px 8px; font-size: 9px; }
+            input { padding: 3px; font-size: 9px; }
+            .skull-float svg { width: 30px; height: 30px; }
+            .interpretation-box, .solution-box { font-size: 8px; max-height: 120px; padding: 6px; }
+            .card-detail { padding: 4px; margin: 4px 0; }
+            .card-detail h4 { font-size: 9px; }
+            .card-detail p { font-size: 7px; }
+            h3 { font-size: 10px; }
+            #death-summary { font-size: 8px; padding: 6px; }
+            .warning, .success { font-size: 9px; }
+            .title-bar svg, .warning svg, .success svg { width: 10px; height: 10px; }
+        }
+
+        @media (max-width: 768px) and (orientation: landscape) {
+            .card { width: 45px; height: 70px; }
+            #result-window { max-height: 90vh; }
+        }
+
+        @media (min-width: 1200px) {
+            .card { width: 80px; height: 125px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- MATRIX RAIN CANVAS -->
+    <canvas id="matrix-canvas"></canvas>
+
+    <!-- PARTICLE CONTAINER -->
+    <div id="particles"></div>
+
+    <!-- FLOATING SKULLS -->
+    <div class="skull-float" style="top:10%; left:10%;">
+        <svg viewBox="0 0 64 64" fill="white">
+            <path d="M32 4c-8.284 0-15 6.716-15 15 0 2.973.867 5.746 2.364 8.086L16 32l3.364 4.914A14.945 14.945 0 0 0 17 45c0 8.284 6.716 15 15 15s15-6.716 15-15c0-2.973-.867-5.746-2.364-8.086L48 32l-3.364-4.914A14.945 14.945 0 0 0 47 19c0-8.284-6.716-15-15-15zm-6 17a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm12 0a3 3 0 1 1 0-6 3 3 0 0 1 0 6zM24 44h16v4H24v-4z"/>
+        </svg>
+    </div>
+    <div class="skull-float" style="top:70%; right:20%; animation-delay:3s;">
+        <svg viewBox="0 0 64 64" fill="white">
+            <path d="M32 4c-8.284 0-15 6.716-15 15 0 2.973.867 5.746 2.364 8.086L16 32l3.364 4.914A14.945 14.945 0 0 0 17 45c0 8.284 6.716 15 15 15s15-6.716 15-15c0-2.973-.867-5.746-2.364-8.086L48 32l-3.364-4.914A14.945 14.945 0 0 0 47 19c0-8.284-6.716-15-15-15zm-6 17a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm12 0a3 3 0 1 1 0-6 3 3 0 0 1 0 6zM24 44h16v4H24v-4z"/>
+        </svg>
+    </div>
+    <div class="skull-float" style="top:40%; left:60%; animation-delay:6s;">
+        <svg viewBox="0 0 64 64" fill="white">
+            <path d="M32 4c-8.284 0-15 6.716-15 15 0 2.973.867 5.746 2.364 8.086L16 32l3.364 4.914A14.945 14.945 0 0 0 17 45c0 8.284 6.716 15 15 15s15-6.716 15-15c0-2.973-.867-5.746-2.364-8.086L48 32l-3.364-4.914A14.945 14.945 0 0 0 47 19c0-8.284-6.716-15-15-15zm-6 17a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm12 0a3 3 0 1 1 0-6 3 3 0 0 1 0 6zM24 44h16v4H24v-4z"/>
+        </svg>
+    </div>
+
+    <!-- BOOT SCREEN -->
+    <div id="boot-screen" style="width:100vw; height:100vh; background:#000; color:#fff; display:flex; align-items:center; justify-content:center; flex-direction:column; font-size:14px; text-align:center; padding:20px;">
+        <pre style="color:#888; font-size:10px;">
+DESTINY OS v6.66.6
+Copyright (C) 1996-2025 VOID Systems Corp.
+        </pre>
+        <p id="boot-status" style="margin:20px 0; color:#00ff00;" class="typewriter">Initializing...</p>
+        <div class="progress-bar" style="width:90%; max-width:300px;">
+            <div id="boot-progress" class="progress-fill" style="width:0%"></div>
+        </div>
+        <p style="margin-top:10px; color:#ff0000;" class="blink">
+            <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:middle; margin-right:5px;">
+                <path fill="#ff0000" d="M8 2L2 14h12L8 2z"/>
+                <text x="8" y="12" fill="white" font-size="10" text-anchor="middle">!</text>
+            </svg>
+            PRESS ANY KEY
+        </p>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="main-app" class="hidden">
+        <div id="card-container"></div>
+    </div>
+
+    <!-- FORM WINDOW -->
+    <div id="form-window" class="window hidden" style="top:30%; left:35%; width:350px; z-index:100;">
+        <div class="title-bar">
+            <span>
+                <svg viewBox="0 0 16 16">
+                    <rect fill="#c0c0c0" x="1" y="1" width="14" height="14"/>
+                    <path fill="#000080" d="M3 3h10v10H3z"/>
+                    <circle fill="#ff0000" cx="8" cy="8" r="3"/>
+                </svg>
+                IDENTITY_SCAN.EXE
+            </span>
+            <div class="title-buttons">
+                <button class="title-btn">_</button>
+                <button class="title-btn">□</button>
+                <button class="title-btn" onclick="alert('ERROR: Cannot Close')">X</button>
+            </div>
+        </div>
+        <div class="window-body">
+            <p style="margin-bottom:10px;">
+                <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:middle; margin-right:5px;">
+                    <path fill="#ff0000" d="M8 2L2 14h12L8 2z"/>
+                    <text x="8" y="12" fill="white" font-size="10" text-anchor="middle">!</text>
+                </svg>
+                <span class="corrupt">ENTER YOUR DATA</span>
+            </p>
+            <label>FULL NAME:</label>
+            <input type="text" id="userName" placeholder="Required" autocomplete="off">
+            <label>DATE OF BIRTH:</label>
+            <input type="date" id="userDob">
+            <div style="text-align:center; margin-top:15px;">
+                <button onclick="submitData()">BEGIN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- INSTRUCTION WINDOW -->
+    <div id="instruction-window" class="window hidden" style="top:10%; left:10%; width:250px; z-index:99;">
+        <div class="title-bar">
+            <span>
+                <svg viewBox="0 0 16 16">
+                    <rect fill="#c0c0c0" x="2" y="2" width="12" height="12"/>
+                    <path fill="#000" d="M4 4h8v8H4z"/>
+                    <text x="8" y="11" fill="#00ff00" font-size="8" text-anchor="middle">?</text>
+                </svg>
+                RULES
+            </span>
+            <button class="title-btn" onclick="this.parentElement.parentElement.remove()">X</button>
+        </div>
+        <div class="window-body">
+            <p style="font-size:10px; line-height:1.5;">
+                Pick <b style="color:#ff0000;">3 CARDS</b>.<br><br>
+                They will tell you:<br>
+                • When you die<br>
+                • How you die<br>
+                • Why you die<br>
+                • How to avoid it<br><br>
+                <span style="color:#ff0000;">Choose carefully.</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- RESULT WINDOW -->
+    <div id="result-window" class="window hidden" style="top:5%; left:20%; width:550px; max-height:90vh; z-index:1000; border-color:#ff0000;">
+        <div class="title-bar" style="background:#ff0000;">
+            <span>
+                <svg viewBox="0 0 16 16">
+                    <path fill="white" d="M8 2c-3.314 0-6 2.686-6 6s2.686 6 6 6 6-2.686 6-6-2.686-6-6-6zm-2 5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm4 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2zM6 11h4v1H6v-1z"/>
+                </svg>
+                YOUR FATE
+            </span>
+            <div class="title-buttons">
+                <button class="title-btn" onclick="location.reload()">↻</button>
+            </div>
+        </div>
+        <div class="window-body" style="max-height:80vh; overflow-y:auto;">
+            <div class="warning">
+                <svg width="16" height="16" viewBox="0 0 16 16">
+                    <path fill="white" d="M8 2L2 14h12L8 2z"/>
+                    <text x="8" y="12" fill="#ff0000" font-size="10" text-anchor="middle">!</text>
+                </svg>
+                DEATH CONFIRMED
+            </div>
+
+            <!-- COUNTDOWN TIMER -->
+            <div class="countdown">
+                <div class="countdown-label">TIME REMAINING UNTIL DEATH:</div>
+                <div class="countdown-value" id="countdown-timer">CALCULATING...</div>
+            </div>
+            
+            <div id="death-summary" style="background:#000; color:#0f0; padding:8px; font-family:monospace; font-size:10px; margin:8px 0;"></div>
+            
+            <h3 style="margin:12px 0 8px 0; color:#ff0000; font-size:12px;">
+                <svg width="14" height="14" viewBox="0 0 16 16" style="vertical-align:middle; margin-right:3px;">
+                    <rect fill="#c0c0c0" x="2" y="4" width="12" height="10" rx="1"/>
+                    <rect fill="#fff" x="3" y="5" width="10" height="8"/>
+                    <rect fill="#000" x="4" y="6" width="3" height="4"/>
+                    <rect fill="#000" x="9" y="6" width="3" height="4"/>
+                </svg>
+                YOUR CARDS:
+            </h3>
+            <div id="card-interpretations"></div>
+            
+            <h3 style="margin:12px 0 8px 0; color:#ff0000; font-size:12px;">
+                <svg width="14" height="14" viewBox="0 0 16 16" style="vertical-align:middle; margin-right:3px;">
+                    <circle fill="#c0c0c0" cx="8" cy="6" r="3"/>
+                    <path fill="#c0c0c0" d="M4 11c0-2 1.5-3 4-3s4 1 4 3v3H4v-3z"/>
+                </svg>
+                WHO YOU ARE:
+            </h3>
+            <div id="personality-analysis" class="interpretation-box"></div>
+
+            <!-- FUTURE WARNING TIMELINE -->
+            <h3 style="margin:12px 0 8px 0; color:#ffaa00; font-size:12px;">
+                ⚡ FUTURE DANGER ZONES:
+            </h3>
+            <div id="near-death-timeline" class="timeline"></div>
+            
+            <h3 style="margin:12px 0 8px 0; color:#ff0000; font-size:12px;">
+                <svg width="14" height="14" viewBox="0 0 16 16" style="vertical-align:middle; margin-right:3px;">
+                    <circle fill="none" stroke="#ff0000" stroke-width="2" cx="8" cy="8" r="6"/>
+                    <path fill="#ff0000" d="M8 4v5l3 3"/>
+                </svg>
+                WHAT WILL HAPPEN:
+            </h3>
+            <div id="future-events" class="interpretation-box"></div>
+            
+            <div class="success" style="margin-top:15px;">
+                <svg width="16" height="16" viewBox="0 0 16 16">
+                    <circle fill="white" cx="8" cy="8" r="7"/>
+                    <path fill="#00ff00" d="M5 8l2 2 4-4" stroke="#000" stroke-width="1"/>
+                </svg>
+                SOLUTION AVAILABLE
+            </div>
+            
+            <h3 style="margin:12px 0 8px 0; color:#00ff00; font-size:12px;">
+                <svg width="14" height="14" viewBox="0 0 16 16" style="vertical-align:middle; margin-right:3px;">
+                    <circle fill="#fff" cx="8" cy="6" r="4"/>
+                    <rect fill="#fff" x="6" y="10" width="4" height="5" rx="1"/>
+                </svg>
+                HOW TO AVOID DEATH (ZODIAC-SPECIFIC):
+            </h3>
+            <div id="solution-section" class="solution-box"></div>
+
+            <!-- ASTROLOGY BONUS -->
+            <div id="astrology-bonus" style="background:#1a1a1a; padding:8px; margin:8px 0; border:1px solid #888; font-size:9px; color:#ccc;">
+                <b style="color:#ffaa00;">🌙 ASTROLOGICAL INSIGHT:</b>
+                <div id="astro-content"></div>
+            </div>
+            
+            <p style="text-align:center; margin-top:15px; display:flex; gap:10px; justify-content:center;">
+                <button onclick="location.reload()">TRY AGAIN</button>
+                <button class="share-btn" onclick="shareYourFate()">📤 SHARE YOUR FATE</button>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // ========== MATRIX RAIN EFFECT ==========
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const matrixChars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノ';
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 130, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0F0';
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = matrixChars.charAt(Math.floor(Math.random() * matrixChars.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 50);
+
+        // ========== PARTICLE SYSTEM ==========
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * window.innerWidth + 'px';
+            particle.style.top = '-10px';
+            particle.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            document.getElementById('particles').appendChild(particle);
+            
+            setTimeout(() => particle.remove(), 5000);
+        }
+
+        setInterval(createParticle, 500);
+
+        // ========== ACCURATE ZODIAC CALCULATION ==========
+        function getZodiacSign(month, day) {
+            const signs = [
+                { name: "Capricorn", start: [12, 22], end: [1, 19] },
+                { name: "Aquarius", start: [1, 20], end: [2, 18] },
+                { name: "Pisces", start: [2, 19], end: [3, 20] },
+                { name: "Aries", start: [3, 21], end: [4, 19] },
+                { name: "Taurus", start: [4, 20], end: [5, 20] },
+                { name: "Gemini", start: [5, 21], end: [6, 20] },
+                { name: "Cancer", start: [6, 21], end: [7, 22] },
+                { name: "Leo", start: [7, 23], end: [8, 22] },
+                { name: "Virgo", start: [8, 23], end: [9, 22] },
+                { name: "Libra", start: [9, 23], end: [10, 22] },
+                { name: "Scorpio", start: [10, 23], end: [11, 21] },
+                { name: "Sagittarius", start: [11, 22], end: [12, 21] }
+            ];
+
+            for (let sign of signs) {
+                const [startMonth, startDay] = sign.start;
+                const [endMonth, endDay] = sign.end;
+                
+                if (
+                    (month === startMonth && day >= startDay) ||
+                    (month === endMonth && day <= endDay)
+                ) {
+                    return sign.name;
+                }
+            }
+            return "Capricorn"; // Default fallback
+        }
+
+        // ========== ZODIAC-SPECIFIC SOLUTIONS (20 RANDOM SETS) ==========
+        const ZODIAC_SOLUTIONS = {
+            "Aries": [
+                "Control your temper - impulsive anger leads to fatal mistakes",
+                "Slow down while driving - your speed kills",
+                "Think before confronting others - physical fights can be deadly",
+                "Avoid extreme sports without proper training",
+                "Don't make enemies - your competitive nature attracts violence",
+                "Learn to back down - your pride can cost your life",
+                "Check equipment before risky activities",
+                "Don't challenge dangerous people",
+                "Take anger management classes",
+                "Avoid road rage situations",
+                "Think twice before taking dares",
+                "Learn defensive driving",
+                "Don't drink and drive - your risk-taking is amplified",
+                "Avoid fights in bars or clubs",
+                "Get professional help for aggression",
+                "Don't provoke authority figures",
+                "Learn when to retreat",
+                "Avoid gambling with your safety",
+                "Take martial arts to channel aggression safely",
+                "Practice meditation to control impulses"
+            ],
+            "Taurus": [
+                "Your stubborn refusal to see doctors will kill you - get checkups NOW",
+                "Stop ignoring chest pains and symptoms",
+                "Your love of rich food clogs arteries - change diet immediately",
+                "Refusing to evacuate during disasters is fatal - learn to let go",
+                "Get your heart checked - Taurus rules the throat and heart",
+                "Don't stay in dangerous situations out of stubbornness",
+                "Your resistance to change prevents life-saving adaptations",
+                "Stop hoarding stress - it manifests physically",
+                "Learn CPR - you might need it for yourself",
+                "Don't ignore warning signs from your body",
+                "Regular exercise now or hospital later",
+                "Stop eating out of comfort - it's killing you",
+                "Listen to loved ones when they worry about your health",
+                "Don't refuse medical procedures out of fear",
+                "Update your will - your possessions won't save you",
+                "Accept that doctors know better than you",
+                "Stop self-medicating",
+                "Your comfort zone is a death trap",
+                "Material possessions can't save you - let them go in emergencies",
+                "Prioritize health over wealth"
+            ],
+            "Gemini": [
+                "Stop texting while driving - distraction kills",
+                "Your scattered attention causes accidents",
+                "Don't lie about medical history - it can be fatal",
+                "Focus on one task - multitasking in danger zones kills",
+                "Your gossip creates dangerous enemies",
+                "Spreading misinformation can backfire lethally",
+                "Pay attention to your surroundings",
+                "Stop changing medical treatments mid-course",
+                "Your curiosity kills - don't explore dangerous places alone",
+                "Finish what you start - half-done safety measures fail",
+                "Don't split your attention during critical moments",
+                "Your words create enemies - watch your tongue",
+                "Communication breakdowns cause accidents - be clear",
+                "Don't joke about serious threats",
+                "Focus during emergencies instead of panicking",
+                "Your nervous energy causes mistakes",
+                "Stop spreading rumors that could get you hurt",
+                "Pay attention to safety briefings",
+                "Don't multitask while using dangerous equipment",
+                "Your indecision in crises is fatal - practice quick decision-making"
+            ],
+            "Cancer": [
+                "Your emotional eating leads to fatal health problems",
+                "Stop withdrawing during medical emergencies - communicate!",
+                "Your clinging to toxic people will get you killed",
+                "Ignoring mental health leads to physical death",
+                "Don't isolate when you need help most",
+                "Your mood swings cause poor judgment",
+                "Stop bottling emotions - stress kills",
+                "Codependency puts you in dangerous situations",
+                "Learn to leave toxic relationships",
+                "Your nostalgia prevents necessary changes",
+                "Don't stay in unsafe homes for sentimental reasons",
+                "Depression affects physical health - get therapy NOW",
+                "Stop self-medicating with food or alcohol",
+                "Your fear of abandonment keeps you in danger",
+                "Trust your intuition but don't ignore facts",
+                "Reach out when you're struggling",
+                "Your passive-aggressive behavior creates dangerous enemies",
+                "Stop sacrificing yourself for others - you'll die doing it",
+                "Set boundaries with dangerous people",
+                "Your emotional manipulation backfires violently"
+            ],
+            "Leo": [
+                "Your pride prevents you from asking for help - it'll kill you",
+                "Stop showing off with dangerous stunts",
+                "Your ego makes you ignore warnings",
+                "Don't take unnecessary risks to impress others",
+                "Your need for attention puts you in harm's way",
+                "Stop gambling - your overconfidence is deadly",
+                "Learn humility or die proud",
+                "Your dramatic reactions waste time in emergencies",
+                "Stop investing in risky ventures",
+                "Your arrogance makes you underestimate threats",
+                "Don't drive luxury cars recklessly",
+                "Your generosity attracts dangerous users",
+                "Stop lending to criminals",
+                "Your loyalty to undeserving people is fatal",
+                "Learn when to admit you're wrong",
+                "Your stubbornness about being 'right' delays treatment",
+                "Stop seeking validation in dangerous ways",
+                "Your spotlight-seeking attracts stalkers",
+                "Don't ignore expert advice",
+                "Your fear of looking weak prevents asking for medical help"
+            ],
+            "Virgo": [
+                "Your obsessive worry manifests as real illness",
+                "Stop self-diagnosing - see actual doctors",
+                "Your perfectionism delays emergency action",
+                "Anxiety attacks can trigger heart problems - get treatment",
+                "Your critical nature creates violent enemies",
+                "Stop overthinking in emergencies - ACT",
+                "Your health anxiety becomes self-fulfilling prophecy",
+                "OCD about germs weakens immune system paradoxically",
+                "Your criticism of others' mistakes gets you hurt",
+                "Stop micromanaging dangerous situations",
+                "Your body manifests your mental stress fatally",
+                "Don't ignore symptoms because they're 'not perfect' enough",
+                "Your workaholic tendencies cause burnout and collapse",
+                "Stop sacrificing health for productivity",
+                "Your inability to relax causes fatal stress",
+                "Learn to accept 'good enough' in emergencies",
+                "Your critical comments provoke violence",
+                "Stop analyzing and start running when in danger",
+                "Your need for control makes you inflexible",
+                "Perfectionism in medical treatment delays cure"
+            ],
+            "Libra": [
+                "Your indecision in emergencies kills you",
+                "Stop trying to please everyone - it puts you in danger",
+                "Your avoidance of conflict lets threats grow",
+                "Choose sides - sitting on the fence is fatal",
+                "Your people-pleasing attracts abusers",
+                "Stop mediating between dangerous people",
+                "Your inability to say 'no' puts you in harm's way",
+                "Make decisions quickly in crises",
+                "Your charm won't work on everyone - some will kill you",
+                "Stop being nice to people who threaten you",
+                "Your need for harmony prevents necessary confrontations",
+                "Choose flight over diplomacy when in danger",
+                "Your passive nature makes you an easy target",
+                "Stop weighing pros and cons during emergencies",
+                "Your desire for fairness doesn't apply to survival",
+                "Trust your gut instead of overthinking",
+                "Your partnership dependency leaves you vulnerable",
+                "Learn to act alone in emergencies",
+                "Stop trying to see 'both sides' of a threat",
+                "Your indecision about medical treatment is fatal"
+            ],
+            "Scorpio": [
+                "Your secretive nature prevents getting help",
+                "Stop keeping dangerous secrets",
+                "Your trust issues make you ignore allies",
+                "Your revenge plots backfire lethally",
+                "Stop investigating dangerous people alone",
+                "Your paranoia is justified but act on it",
+                "Don't keep your illness secret",
+                "Your intensity attracts violent people",
+                "Stop playing mind games with dangerous individuals",
+                "Your obsession blinds you to other threats",
+                "Trust someone before it's too late",
+                "Your control issues prevent asking for help",
+                "Stop manipulating dangerous situations",
+                "Your jealousy creates enemies",
+                "Don't dig into things better left alone",
+                "Your all-or-nothing approach leaves no escape route",
+                "Stop testing people's loyalty in dangerous ways",
+                "Your need for power attracts powerful enemies",
+                "Share your location with trusted contacts",
+                "Your self-destructive tendencies are literally destructive"
+            ],
+            "Sagittarius": [
+                "Your reckless optimism ignores real dangers",
+                "Stop traveling to dangerous places alone",
+                "Your overconfidence in foreign lands kills",
+                "Don't trust strangers while traveling",
+                "Your risk-taking has consequences - learn limits",
+                "Stop drinking excessively in unfamiliar places",
+                "Your blunt honesty offends dangerous people",
+                "Learn when to lie to save your life",
+                "Your wanderlust puts you in bad situations",
+                "Stop ignoring travel warnings",
+                "Your philosophical attitude delays action",
+                "Don't preach to people who could hurt you",
+                "Your restlessness prevents proper healing",
+                "Stop running from problems - face them",
+                "Your adventure-seeking goes too far",
+                "Check safety ratings before traveling",
+                "Your carelessness with details causes accidents",
+                "Stop assuming everything will work out",
+                "Your honesty about beliefs creates enemies",
+                "Learn cultural sensitivity - it saves lives"
+            ],
+            "Capricorn": [
+                "Your workaholic lifestyle causes fatal stress",
+                "Stop ignoring health for career",
+                "Your depression goes untreated - get help NOW",
+                "Work-life balance or early death",
+                "Your pessimism prevents seeing solutions",
+                "Stop sacrificing everything for success",
+                "Your isolation makes you vulnerable",
+                "Connect with people before you need rescue",
+                "Your control issues prevent delegation",
+                "Let others help you",
+                "Your rigid thinking prevents adaptation",
+                "Be flexible or break fatally",
+                "Stop working through illness",
+                "Your emotional repression manifests physically",
+                "Express feelings before they kill you",
+                "Your ambition makes you climb too high",
+                "Know when to step down",
+                "Your cold demeanor creates enemies",
+                "Show vulnerability occasionally",
+                "Your responsibility complex leads to burnout"
+            ],
+            "Aquarius": [
+                "Your detachment prevents recognizing danger",
+                "Stop intellectualizing emergencies - ACT",
+                "Your rebellion against authority includes doctors",
+                "Listen to medical advice",
+                "Your experimental nature includes dangerous substances",
+                "Stop being the guinea pig",
+                "Your need for freedom ignores safety",
+                "Accept help before it's too late",
+                "Your unconventional choices have consequences",
+                "Some rules exist for survival",
+                "Your emotional distance prevents bonding with rescuers",
+                "Show emotion when asking for help",
+                "Your stubbornness about being 'different' is deadly",
+                "Conform to safety standards",
+                "Your idealism ignores practical dangers",
+                "Be realistic about threats",
+                "Your rationality fails in emotional crises",
+                "Develop emotional intelligence",
+                "Your humanitarian efforts put you in danger zones",
+                "Help from a safe distance sometimes"
+            ],
+            "Pisces": [
+                "Your escapism through substances will kill you",
+                "Stop self-medicating - get real treatment",
+                "Your victim mentality prevents action",
+                "Take responsibility for your safety",
+                "Your fantasy world blinds you to real danger",
+                "Wake up before it's too late",
+                "Your trust in the wrong people is fatal",
+                "Develop discernment",
+                "Your addiction issues need immediate treatment",
+                "Rehab or death - choose now",
+                "Your sensitivity to others' pain leads to manipulation",
+                "Set boundaries with users",
+                "Your inability to say no puts you in danger",
+                "Practice assertiveness",
+                "Your confusion in emergencies is deadly",
+                "Stay alert and present",
+                "Your psychic intuition is right - listen to it",
+                "Act on your gut feelings",
+                "Your martyr complex leads to literal sacrifice",
+                "Save yourself first",
+                "Your illusions prevent seeing threats clearly",
+                "Ground yourself in reality"
+            ]
+        };
+
+        // ========== TAROT DECK ==========
+        const TAROT_DECK = [
+            {
+                name: "Death",
+                img: "https://upload.wikimedia.org/wikipedia/commons/d/d7/RWS_Tarot_13_Death.jpg",
+                power: 13,
+                meaning: "Endings and major change",
+                prediction: "Something big in your life will end suddenly",
+                personality: "You resist change. You hold onto things too long",
+                event: "A major loss is coming - relationship, job, or loved one"
+            },
+            {
+                name: "The Tower",
+                img: "https://upload.wikimedia.org/wikipedia/commons/5/53/RWS_Tarot_16_Tower.jpg",
+                power: 16,
+                meaning: "Disaster and destruction",
+                prediction: "Your life will fall apart in one moment",
+                personality: "You built your life on lies. You ignore warnings",
+                event: "Sudden accident or betrayal will destroy everything"
+            },
+            {
+                name: "The Devil",
+                img: "https://upload.wikimedia.org/wikipedia/commons/5/55/RWS_Tarot_15_Devil.jpg",
+                power: 15,
+                meaning: "Addiction and bad habits",
+                prediction: "Your vices will kill you",
+                personality: "You're addicted to something - drugs, people, or money",
+                event: "Your addiction gets worse and causes your death"
+            },
+            {
+                name: "Hanged Man",
+                img: "https://upload.wikimedia.org/wikipedia/commons/2/2b/RWS_Tarot_12_Hanged_Man.jpg",
+                power: 12,
+                meaning: "Being stuck and helpless",
+                prediction: "You won't be able to save yourself",
+                personality: "You freeze when you should act. You wait too long",
+                event: "You'll be trapped and unable to escape"
+            },
+            {
+                name: "Ten of Swords",
+                img: "https://upload.wikimedia.org/wikipedia/commons/d/d4/Swords10.jpg",
+                power: 10,
+                meaning: "Betrayal by many",
+                prediction: "People you trust will betray you",
+                personality: "You trust the wrong people. You ignore red flags",
+                event: "Friends or family will cause your downfall"
+            },
+            {
+                name: "The Moon",
+                img: "https://upload.wikimedia.org/wikipedia/commons/7/7f/RWS_Tarot_18_Moon.jpg",
+                power: 18,
+                meaning: "Confusion and deception",
+                prediction: "You'll be tricked and won't see danger",
+                personality: "You're anxious but ignore your gut feeling",
+                event: "Darkness and confusion. You won't know what's real"
+            },
+            {
+                name: "The Hermit",
+                img: "https://upload.wikimedia.org/wikipedia/commons/4/4d/RWS_Tarot_09_Hermit.jpg",
+                power: 9,
+                meaning: "Loneliness",
+                prediction: "You will die alone",
+                personality: "You push people away. You isolate yourself",
+                event: "No one will be there when you need help"
+            },
+            {
+                name: "Judgment",
+                img: "https://upload.wikimedia.org/wikipedia/commons/d/dd/RWS_Tarot_20_Judgement.jpg",
+                power: 20,
+                meaning: "Karma and payback",
+                prediction: "Your past will come back to haunt you",
+                personality: "You did bad things and feel guilty",
+                event: "Something from your past causes your death"
+            },
+            {
+                name: "The Fool",
+                img: "https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg",
+                power: 0,
+                meaning: "Recklessness",
+                prediction: "A stupid mistake will kill you",
+                personality: "You don't think before acting. You take dumb risks",
+                event: "An accident you could have easily avoided"
+            },
+            {
+                name: "Five of Cups",
+                img: "https://upload.wikimedia.org/wikipedia/commons/d/d7/Cups05.jpg",
+                power: 5,
+                meaning: "Depression and regret",
+                prediction: "Sadness will consume you",
+                personality: "You focus on what went wrong. You can't let go",
+                event: "Depression leads to neglect and poor health"
+            },
+            {
+                name: "Three of Swords",
+                img: "https://upload.wikimedia.org/wikipedia/commons/0/02/Swords03.jpg",
+                power: 3,
+                meaning: "Heartbreak",
+                prediction: "Love will destroy you",
+                personality: "You love too hard and ignore warning signs",
+                event: "A broken relationship triggers your downfall"
+            },
+            {
+                name: "Nine of Swords",
+                img: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Swords09.jpg",
+                power: 9,
+                meaning: "Anxiety and nightmares",
+                prediction: "Your mind is your enemy",
+                personality: "You worry constantly. You create problems in your head",
+                event: "Mental breakdown leads to poor decisions"
+            }
+        ];
+
+        const DEATH_CAUSES = [
+            "Heart Attack (No Warning)",
+            "Car Crash (High Speed)",
+            "Choking (Alone)",
+            "Brain Hemorrhage (Instant)",
+            "Building Collapse (Trapped)",
+            "Freezing (Lost)",
+            "Poisoning (Slow)",
+            "Electrocution (Accident)",
+            "Drowning (Shallow Water)",
+            "Fall (From Height)"
+        ];
+
+        // ========== STATE ==========
+        let userData = {};
+        let selectedCards = [];
+        let cardElements = [];
+        let isMobile = window.innerWidth <= 768;
+        let deathDate = null;
+        let currentAge = 0;
+        let zodiacSign = "";
+
+        // ========== AUDIO ==========
+        const AudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function beep(freq, duration, type='square') {
+            if (AudioCtx.state === 'suspended') AudioCtx.resume();
+            const osc = AudioCtx.createOscillator();
+            const gain = AudioCtx.createGain();
+            osc.frequency.value = freq;
+            osc.type = type;
+            gain.gain.value = 0.1;
+            osc.connect(gain);
+            gain.connect(AudioCtx.destination);
+            osc.start();
+            osc.stop(AudioCtx.currentTime + duration);
+        }
+
+        function errorSound() {
+            beep(400, 0.1);
+            setTimeout(() => beep(300, 0.15), 100);
+        }
+
+        function playDroneSound() {
+            const osc = AudioCtx.createOscillator();
+            const gain = AudioCtx.createGain();
+            osc.frequency.value = 50;
+            osc.type = 'sine';
+            gain.gain.value = 0.03;
+            osc.connect(gain);
+            gain.connect(AudioCtx.destination);
+            osc.start();
+            setTimeout(() => osc.stop(), 3000);
+        }
+
+        // ========== PRELOAD ==========
+        function preloadImages() {
+            TAROT_DECK.forEach(card => {
+                const img = new Image();
+                img.src = card.img;
+            });
+        }
+        preloadImages();
+
+        // ========== BOOT SEQUENCE ==========
+        const bootMessages = [
+            "Loading FATE_ENGINE.sys...",
+            "Scanning DESTINY database...",
+            "Connecting to VOID servers...",
+            "Calculating PROBABILITY matrix...",
+            "Initializing DEATH_PROTOCOL...",
+            "System ready."
+        ];
+
+        let bootProgress = 0;
+        let messageIndex = 0;
+        const bootInterval = setInterval(() => {
+            bootProgress += Math.random() * 12;
+            document.getElementById('boot-progress').style.width = bootProgress + '%';
+            
+            if(bootProgress > 20 * messageIndex && messageIndex < bootMessages.length) {
+                document.getElementById('boot-status').textContent = bootMessages[messageIndex];
+                messageIndex++;
+            }
+            
+            if(bootProgress >= 100) {
+                clearInterval(bootInterval);
+                setTimeout(() => {
+                    document.getElementById('boot-screen').style.display = 'none';
+                    document.getElementById('main-app').classList.remove('hidden');
+                    document.getElementById('form-window').classList.remove('hidden');
+                    beep(800, 0.2, 'sine');
+                    if(!isMobile) makeDraggable(document.getElementById('form-window'));
+                    playDroneSound();
+                }, 500);
+            }
+        }, 200);
+
+        document.addEventListener('keydown', () => {
+            if(bootProgress < 100) bootProgress += 20;
+        });
+        
+        document.addEventListener('touchstart', () => {
+            if(bootProgress < 100) bootProgress += 20;
+        });
+
+        // ========== DRAGGABLE ==========
+        function makeDraggable(elem) {
+            if(isMobile) return;
+            
+            let pos1=0, pos2=0, pos3=0, pos4=0;
+            const header = elem.querySelector('.title-bar');
+            if(header) {
+                header.onmousedown = dragStart;
+            }
+            
+            function dragStart(e) {
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = dragEnd;
+                document.onmousemove = dragMove;
+            }
+            
+            function dragMove(e) {
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                elem.style.top = (elem.offsetTop - pos2) + "px";
+                elem.style.left = (elem.offsetLeft - pos1) + "px";
+            }
+            
+            function dragEnd() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+
+        // ========== CALCULATE CURRENT AGE ==========
+        function calculateAge(dob) {
+            const birthDate = new Date(dob);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            
+            return age;
+        }
+
+        function submitData() {
+            const name = document.getElementById('userName').value.toUpperCase().trim();
+            const dob = document.getElementById('userDob').value;
+            
+            if(!name || !dob) {
+                errorSound();
+                alert('ERROR: ENTER ALL DATA');
+                return;
+            }
+            
+            // Calculate current age
+            currentAge = calculateAge(dob);
+            
+            // Calculate zodiac sign ACCURATELY
+            const [year, month, day] = dob.split('-').map(Number);
+            zodiacSign = getZodiacSign(month, day);
+            
+            userData = {name, dob, currentAge, zodiacSign};
+            
+            document.getElementById('form-window').classList.add('hidden');
+            document.getElementById('instruction-window').classList.remove('hidden');
+            if(!isMobile) makeDraggable(document.getElementById('instruction-window'));
+            beep(600, 0.3, 'triangle');
+            spawnCards();
+            if(!isMobile) spawnErrorWindows();
+        }
+
+        function spawnCards() {
+            const container = document.getElementById('card-container');
+            
+            let seed = hashString(userData.name + userData.dob);
+            function seededRandom() {
+                const x = Math.sin(seed++) * 10000;
+                return x - Math.floor(x);
+            }
+            
+            const allCards = [];
+            const copies = isMobile ? 2 : 3;
+            for(let i = 0; i < copies; i++) {
+                allCards.push(...TAROT_DECK);
+            }
+            
+            const shuffled = allCards.sort(() => seededRandom() - 0.5);
+            
+            const cardCount = isMobile ? 20 : 30;
+            shuffled.slice(0, cardCount).forEach((card, i) => {
+                const el = document.createElement('div');
+                el.className = 'card';
+                el.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-back-face"></div>
+                        <div class="card-front" style="background-image:url('${card.img}')"></div>
+                    </div>
+                `;
+                
+                const x = seededRandom() * (window.innerWidth - 90);
+                const y = seededRandom() * (window.innerHeight - 130);
+                const rot = (seededRandom() - 0.5) * 90;
+                
+                el.style.left = x + 'px';
+                el.style.top = y + 'px';
+                el.style.transform = `rotate(${rot}deg)`;
+                el.style.zIndex = i;
+                
+                el.onclick = () => selectCard(el, card);
+                container.appendChild(el);
+                cardElements.push({el, card});
+                
+                if(!isMobile) {
+                    setInterval(() => {
+                        if(!el.classList.contains('flipped')) {
+                            const dx = (Math.random() - 0.5) * 2;
+                            const dy = (Math.random() - 0.5) * 2;
+                            const currentX = parseFloat(el.style.left);
+                            const currentY = parseFloat(el.style.top);
+                            el.style.left = (currentX + dx) + 'px';
+                            el.style.top = (currentY + dy) + 'px';
+                        }
+                    }, 2000 + Math.random() * 1000);
+                }
+            });
+        }
+
+        function selectCard(el, card) {
+            if(selectedCards.length >= 3 || el.classList.contains('flipped')) return;
+            
+            el.classList.add('flipped');
+            selectedCards.push(card);
+            
+            beep(300 + (selectedCards.length * 150), 0.3, 'sawtooth');
+            document.body.classList.add('screen-glitch');
+            setTimeout(() => document.body.classList.remove('screen-glitch'), 300);
+            
+            for(let i = 0; i < 10; i++) {
+                createParticle();
+            }
+            
+            if(selectedCards.length === 3) {
+                document.getElementById('instruction-window').classList.add('hidden');
+                playDroneSound();
+                setTimeout(calculateDeath, 2000);
+            }
+        }
+
+        function calculateDeath() {
+            const dobStr = userData.dob.replace(/-/g, '');
+            let lifePath = dobStr.split('').reduce((sum, d) => sum + parseInt(d), 0);
+            while(lifePath > 9) {
+                lifePath = lifePath.toString().split('').reduce((sum, d) => sum + parseInt(d), 0);
+            }
+            
+            const nameSum = userData.name.split('').reduce((sum, c) => sum + c.charCodeAt(0), 0);
+            const cardPower = selectedCards.reduce((sum, c) => sum + c.power, 0);
+            
+            const baseAge = 65;
+            const variance = ((nameSum + cardPower) % 30) - 15;
+            const deathAge = Math.max(currentAge + 5, baseAge + variance + (lifePath * 2)); // At least 5 years from now
+            
+            const birthYear = parseInt(userData.dob.split('-')[0]);
+            const deathYear = birthYear + deathAge;
+            const deathMonth = (cardPower % 12) + 1;
+            const deathDay = ((nameSum + lifePath) % 28) + 1;
+            
+            deathDate = new Date(deathYear, deathMonth - 1, deathDay);
+            
+            const causeIndex = (lifePath + (nameSum % 10) + cardPower) % DEATH_CAUSES.length;
+            const cause = DEATH_CAUSES[causeIndex];
+            
+            document.getElementById('card-container').innerHTML = '';
+            document.getElementById('result-window').classList.remove('hidden');
+            if(!isMobile) makeDraggable(document.getElementById('result-window'));
+            
+            const summary = `
+> NAME: ${userData.name}
+> CURRENT AGE: ${currentAge}
+> ZODIAC: ${zodiacSign}
+> LIFE NUMBER: ${lifePath}
+> CARD POWER: ${cardPower}
+
+> DEATH DATE: ${deathDay}/${deathMonth}/${deathYear}
+> YOUR AGE AT DEATH: ${deathAge}
+> HOW: ${cause}
+            `;
+            document.getElementById('death-summary').innerText = summary;
+            
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+            
+            let interpretHTML = '';
+            selectedCards.forEach((card, i) => {
+                interpretHTML += `
+                    <div class="card-detail">
+                        <h4>${i+1}. ${card.name}</h4>
+                        <p><b>Means:</b> ${card.meaning}</p>
+                        <p><b>For You:</b> ${card.prediction}</p>
+                    </div>
+                `;
+            });
+            document.getElementById('card-interpretations').innerHTML = interpretHTML;
+            
+            let personalityHTML = '';
+            selectedCards.forEach((card, i) => {
+                personalityHTML += `<p>• ${card.personality}</p>`;
+            });
+            document.getElementById('personality-analysis').innerHTML = personalityHTML;
+            
+            // FUTURE WARNINGS ONLY
+            generateFutureWarnings(currentAge, deathAge, lifePath);
+            
+            let eventsHTML = '';
+            selectedCards.forEach((card, i) => {
+                eventsHTML += `<p>▸ ${card.event}</p>`;
+            });
+            eventsHTML += `<p style="margin-top:8px; color:#ff0000;"><b>FINAL DAY:</b> ${deathDay}/${deathMonth}/${deathYear} - ${cause}</p>`;
+            document.getElementById('future-events').innerHTML = eventsHTML;
+            
+            // ZODIAC-SPECIFIC SOLUTIONS (3 RANDOM)
+            generateZodiacSolutions(zodiacSign);
+            
+            // Astrology
+            generateAstrology(userData.dob, deathAge);
+            
+            beep(100, 3, 'sawtooth');
+            
+            let glitchCount = 0;
+            const glitchInterval = setInterval(() => {
+                document.body.classList.toggle('screen-glitch');
+                glitchCount++;
+                if(glitchCount > 15) {
+                    clearInterval(glitchInterval);
+                    document.body.classList.remove('screen-glitch');
+                }
+            }, 150);
+        }
+
+        function updateCountdown() {
+            if(!deathDate) return;
+            
+            const now = new Date();
+            const diff = deathDate - now;
+            
+            if(diff <= 0) {
+                document.getElementById('countdown-timer').textContent = '💀 TIME IS UP 💀';
+                return;
+            }
+            
+            const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365));
+            const days = Math.floor((diff % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            document.getElementById('countdown-timer').textContent = 
+                `${years}Y ${days}D ${hours}H ${minutes}M ${seconds}S`;
+        }
+
+        // ONLY SHOW FUTURE WARNINGS
+        function generateFutureWarnings(currentAge, deathAge, lifePath) {
+            const futureEvents = [
+                { ageOffset: 2, event: "Close call with vehicle collision" },
+                { ageOffset: 5, event: "Health scare requires hospitalization" },
+                { ageOffset: Math.floor((deathAge - currentAge) / 3), event: "Relationship turns toxic and dangerous" },
+                { ageOffset: Math.floor((deathAge - currentAge) / 2), event: "Financial decision puts you in vulnerable position" },
+                { ageOffset: Math.floor((deathAge - currentAge) * 0.7), event: "Warning signs appear - easy to ignore, fatal if you do" },
+                { ageOffset: Math.floor((deathAge - currentAge) * 0.9), event: "Last chance to change course - final warning" }
+            ];
+            
+            let html = '';
+            futureEvents.forEach(e => {
+                const futureAge = currentAge + e.ageOffset;
+                const year = parseInt(userData.dob.split('-')[0]) + futureAge;
+                if(futureAge < deathAge && futureAge > currentAge) {
+                    html += `<div class="timeline-item">Age ${futureAge} (${year}): ${e.event}</div>`;
+                }
+            });
+            document.getElementById('near-death-timeline').innerHTML = html || '<p>No warnings detected yet. Doesn\'t mean you\'re safe.</p>';
+        }
+
+        function generateZodiacSolutions(sign) {
+            const solutions = ZODIAC_SOLUTIONS[sign] || ZODIAC_SOLUTIONS["Aries"];
+            
+            // Pick 3 random solutions
+            const shuffled = [...solutions].sort(() => Math.random() - 0.5);
+            const selectedSolutions = shuffled.slice(0, 3);
+            
+            let html = `<p><b>⚠ URGENT ACTIONS FOR ${sign.toUpperCase()}:</b></p>`;
+            selectedSolutions.forEach((solution, i) => {
+                html += `<p>${i+1}. ${solution}</p>`;
+            });
+            
+            document.getElementById('solution-section').innerHTML = html;
+        }
+
+        function generateAstrology(dob, deathAge) {
+            const month = parseInt(dob.split('-')[1]);
+            const day = parseInt(dob.split('-')[2]);
+            
+            const insights = {
+                "Aries": "Mars energy makes you impulsive. Your death involves quick, violent energy - accidents or confrontations.",
+                "Taurus": "Venus/Earth energy means slow decline. Health issues you ignore now become fatal. Stubbornness kills.",
+                "Gemini": "Mercury energy means communication breakdown causes your death. Distraction, misinformation, or nervous energy.",
+                "Cancer": "Moon energy means emotions dictate survival. Your death relates to home, family, or emotional decisions.",
+                "Leo": "Sun energy means pride prevents help-seeking. Dramatic circumstances or refusal to admit weakness.",
+                "Virgo": "Mercury/Earth means anxiety manifests physically. Your worry about health becomes self-fulfilling prophecy.",
+                "Libra": "Venus/Air means indecision in crisis. Death comes while you weigh options or try to please others.",
+                "Scorpio": "Pluto/Mars energy means intensity and secrets. Your death involves betrayal, revenge, or hidden dangers.",
+                "Sagittarius": "Jupiter energy means overconfidence. Risk-taking, travel, or philosophical distraction in wrong moment.",
+                "Capricorn": "Saturn energy means responsibility crushes you. Work stress, isolation, or rigid thinking prevents escape.",
+                "Aquarius": "Uranus/Saturn means detachment from reality. Rebellion against safety rules or emotional disconnect.",
+                "Pisces": "Neptune energy means illusion and confusion. Substances, escapism, or inability to see reality clearly."
+            };
+            
+            document.getElementById('astro-content').innerHTML = `
+                <p><b>Sun Sign:</b> ${zodiacSign}</p>
+                <p>${insights[zodiacSign]}</p>
+                <p><b>Death Age (${deathAge}):</b> Significant based on ${deathAge % 12 + 1}/12 life cycle - critical transition period.</p>
+            `;
+        }
+
+        function shareYourFate() {
+            if(!deathDate) return;
+            
+            const text = `⚠️ MY FATE HAS BEEN SEALED ⚠️\n\nZodiac: ${zodiacSign}\nDeath Date: ${deathDate.toDateString()}\nAge: ${currentAge} now, ${parseInt(userData.dob.split('-')[0]) + Math.floor((deathDate - new Date()) / (1000 * 60 * 60 * 24 * 365)) + currentAge} at death\nCards: ${selectedCards.map(c => c.name).join(', ')}\n\n🔮 Discover your fate too`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'My Death Prediction',
+                    text: text
+                });
+            } else {
+                navigator.clipboard.writeText(text);
+                alert('Your fate has been copied to clipboard!');
+            }
+            
+            beep(666, 0.3, 'triangle');
+        }
+
+        function spawnErrorWindows() {
+            if(isMobile) return;
+            
+            const errors = [
+                "Memory leak detected",
+                "FATE.dll corrupted",
+                "Access denied: LIFE.exe",
+                "System watching you",
+                "Soul.sys not responding",
+                "Karma.dll overflow"
+            ];
+            
+            let count = 0;
+            const interval = setInterval(() => {
+                if(count >= 4 || selectedCards.length === 3) {
+                    clearInterval(interval);
+                    return;
+                }
+                
+                const win = document.createElement('div');
+                win.className = 'window';
+                win.style.left = (Math.random() * (window.innerWidth - 200)) + 'px';
+                win.style.top = (Math.random() * (window.innerHeight - 100)) + 'px';
+                win.style.width = '200px';
+                win.innerHTML = `
+                    <div class="title-bar">
+                        <span>
+                            <svg viewBox="0 0 16 16" width="14" height="14" style="margin-right:3px;">
+                                <path fill="white" d="M8 2L2 14h12L8 2z"/>
+                                <text x="8" y="12" fill="red" font-size="10" text-anchor="middle">!</text>
+                            </svg>
+                            ERROR
+                        </span>
+                        <button class="title-btn" onclick="this.parentElement.parentElement.remove(); errorSound();">X</button>
+                    </div>
+                    <div class="window-body">
+                        <p style="font-size:10px;">${errors[count]}</p>
+                    </div>
+                `;
+                document.body.appendChild(win);
+                makeDraggable(win);
+                errorSound();
+                count++;
+            }, 2500);
+        }
+
+        function hashString(str) {
+            let hash = 0;
+            for(let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash |= 0;
+            }
+            return Math.abs(hash);
+        }
+
+        window.addEventListener('resize', () => {
+            isMobile = window.innerWidth <= 768;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
